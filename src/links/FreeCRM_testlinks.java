@@ -12,6 +12,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxProfile;
+import org.openqa.selenium.firefox.internal.ProfilesIni;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
@@ -30,12 +32,17 @@ public class FreeCRM_testlinks {
 	//*****************************************************************
 	
 	//Handling of Untrusted Certificates in Firefox *****************
-	DesiredCapabilities cap = new DesiredCapabilities();//Allows you launch browser with special capabilities
-	cap.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
-	WebDriver driver =new FirefoxDriver(cap);
-		//*****************************************************************
-		
+	//First we need to create a new firefox profile say "handleuntrustcerti"
+	// untrusted links like http://blog.crmpro.com/?p=319 with response message Forbidden  will be excluded from Step 4.
+	ProfilesIni prof = new ProfilesIni();				
+	FirefoxProfile ffProfile= prof.getProfile ("handleuntrustcerti");
+	ffProfile.setAcceptUntrustedCertificates(true) ;
+	ffProfile.setAssumeUntrustedCertificateIssuer(false);
+	WebDriver driver =new FirefoxDriver(ffProfile);
+	//WebDriver driver =new FirefoxDriver();
 	
+	//*****************************************************************
+		
 	
 	driver.get(portal);
 	driver.manage().window().maximize();
@@ -78,9 +85,11 @@ public class FreeCRM_testlinks {
 	  
 	System.out.println("Protocol: "+url.getProtocol());  
 	System.out.println("Host Name: "+url.getHost());  
-	 
+	
+	
+	//4. Check if link is broken or not 
 	for (int j=0;j<activelinks.size();j++)
-	{
+	{  System.out.println(activelinks.get(j).getAttribute("href"));
 		HttpURLConnection connection= (HttpURLConnection) new URL(activelinks.get(j).getAttribute("href")).openConnection();//open connection with url
 		connection.connect();
 		String respose=connection.getResponseMessage();	
